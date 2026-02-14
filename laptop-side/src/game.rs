@@ -5,9 +5,10 @@ use raylib::prelude::*;
 pub struct GameState {
     pub camera_pos: Vector3,
     pub player_pos: Vector3,
-    // pub points:
     pub rotation: Vector2,
-    pub paused: bool,
+    pub score: u32,
+    pub level_timer: f32,
+    pub is_paused: bool,
 }
 
 impl GameState {
@@ -28,14 +29,23 @@ impl GameState {
 }
 
 pub struct InputDevice {
-    pub x: f32, // Radians per second
+    pub x: f32,
     pub y: f32,
     pub z: f32,
     pub timestamp: f64,
 }
 
-struct Player{
+struct transform{
+    pub position: Vector3,
+    pub velocity: Vector3,
+}
 
+struct Player{
+    pub position: Vector3,
+    pub velocity: Vector3,
+    pub orientation: Quaternion, //Avoid gimbal lock.
+    pub throttle: f32,
+    model: Model,
 }
 
 struct Enemies{
