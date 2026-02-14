@@ -1,6 +1,9 @@
 //! laptop code
 
+use std::time::Duration;
+
 use dioxus::prelude::*;
+use web_sys::wasm_bindgen::prelude::*;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -42,10 +45,43 @@ fn Home() -> Element {
 /// Raylib rendering code
 #[component]
 fn Raylib() -> Element {
-    // ...
+    #[cfg(feature = "web")]
+    use_future(move || async move {
+        start_render_loop();
+    });
+
     rsx! {
-        canvas {}
+        canvas { id: "canvas", width: 1920, height: 1080 }
     }
+}
+
+#[cfg(feature = "web")]
+fn start_render_loop() {
+    let raylib_ctx = raylib::init()
+        .title("minnehack yayy")
+        .width(1920)
+        .height(1080)
+        .build();
+
+    render_loop(raylib_ctx);
+}
+
+#[cfg(feature = "web")]
+fn render_loop(
+    // context: web_sys::CanvasRenderingContext2d,
+    mut raylib: (raylib::RaylibHandle, raylib::RaylibThread),
+) {
+    raylib.0.draw(&raylib.1, |mut handle| {
+        use raylib::{color::Color, prelude::RaylibDraw};
+
+        handle.draw_circle(0, 0, 20.0, Color::new(0xFF, 0, 0, 0xFF));
+    });
+
+    let closure = Closure::once(move || render_loop(raylib));
+    web_sys::window()
+        .expect("global window does not exists")
+        .request_animation_frame(closure.as_ref().unchecked_ref())
+        .unwrap();
 }
 
 /// Blog page
