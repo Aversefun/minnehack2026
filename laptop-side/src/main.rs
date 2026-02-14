@@ -42,7 +42,9 @@ fn Home() -> Element {
 #[component]
 fn Raylib() -> Element {
     // ...
-    rsx! {}
+    rsx! {
+        canvas {}
+    }
 }
 
 /// Blog page
@@ -88,10 +90,7 @@ fn Echo() -> Element {
             h4 { "ServerFn Echo" }
             input {
                 placeholder: "Type here to echo...",
-                oninput: move |event| async move {
-                    let data = echo_server(event.value()).await.unwrap();
-                    response.set(data);
-                },
+                oninput: move |event| async move {},
             }
 
             if !response().is_empty() {
@@ -104,4 +103,5 @@ fn Echo() -> Element {
     }
 }
 
+mod game;
 mod server;

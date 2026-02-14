@@ -9,6 +9,7 @@ edition = "2021"
 [dependencies]
 dioxus = { version = "0.7.1", features = ["router", "fullstack"] }
 raylib = "5.5.1"
+web-sys = "0.3.85"
 
 [features]
 default = ["web"]
