@@ -1,6 +1,7 @@
 //! laptop code
 
 use dioxus::prelude::*;
+use dioxus_fullstack::use_websocket;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -22,6 +23,7 @@ fn main() {
 
 #[component]
 fn App() -> Element {
+
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: MAIN_CSS }

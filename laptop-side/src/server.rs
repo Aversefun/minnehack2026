@@ -2,9 +2,10 @@
 use dioxus::prelude::*;
 use dioxus_fullstack::WebSocketOptions;
 use dioxus_fullstack::Websocket;
+use crate::dioxus_fullstack::JsonEncoding;
 
-#[get("/api/uppercase_ws")]
-async fn uppercase_ws(options: WebSocketOptions) -> Result<Websocket> {
+#[get("/api/phone_ws/")]
+pub async fn phone_ws(options: WebSocketOptions) -> Result<Websocket<String, String, JsonEncoding>> {
     Ok(options.on_upgrade(move |mut socket| async move {
         // send back a greeting message
         _ = socket
