@@ -287,9 +287,9 @@ int main(int argc, char *argv[]) {
                1024 / 8, 1024 / 8, 40, BLACK);
       DrawText(TextFormat("B: %s", choosable_upgrades[1].name.c_str()),
                1024 / 8, 1024 / 2, 40, BLACK);
-      DrawText(TextFormat("A: %s", choosable_upgrades[0].name.c_str()),
+      DrawText(TextFormat("X: %s", choosable_upgrades[0].name.c_str()),
                1024 / 8 * 6, 1024 / 8, 40, BLACK);
-      DrawText(TextFormat("B: %s", choosable_upgrades[1].name.c_str()),
+      DrawText(TextFormat("Y: %s", choosable_upgrades[1].name.c_str()),
                1024 / 8 * 6, 1024 / 2, 40, BLACK);
     }
 
