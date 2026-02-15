@@ -1,4 +1,4 @@
-const socket = new WebSocket("ws://localhost:8080/api/phone_ws");
+const socket = new WebSocket("ws://localhost:8080/api/phone_ws/default_lobby");
 
 document.getElementById("start-button").addEventListener("click", () => {
   document.getElementById("start-button").remove();

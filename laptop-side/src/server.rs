@@ -14,7 +14,6 @@ async fn phone_ws(lobby: String, options: WebSocketOptions) -> Result<Websocket<
 
         // Loop and echo back uppercase messages
         while let Ok(msg) = socket.recv().await {
-            _ = socket.send("hey!".to_string()).await;
         }
     }))
 }
