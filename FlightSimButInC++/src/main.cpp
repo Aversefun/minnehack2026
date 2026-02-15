@@ -90,6 +90,12 @@ int main(int argc, char *argv[]) {
   InitWindow(1024, 1024, "MinneFlight");
   SetTargetFPS(60);
 
+  InitAudioDevice();
+  Sound gearSound = LoadSound("../assets/gear_collect.mp3");
+  Music intenseMusic = LoadMusicStream("../assets/intenseMusic.mp3");
+  intenseMusic.looping = true; // Enables perfect looping
+  PlayMusicStream(intenseMusic);
+
   /////////////////////////////////////////////////////////////////////////////
   // World Initialization
   /////////////////////////////////////////////////////////////////////////////
@@ -212,6 +218,8 @@ int main(int argc, char *argv[]) {
   MenuState last_state = menu_state;
 
   c.on_tick([&](std::optional<wspp::message_view> msg) {
+    UpdateMusicStream(intenseMusic);
+
     frame_ticks++;
     if (frame_ticks % 1000 == 0 || last_state != menu_state) {
       nlohmann::json data = {{"type", "set_game_state"},
@@ -419,6 +427,15 @@ int main(int argc, char *argv[]) {
         }
         collectibles[i].draw(collectibleGear);
 
+        if (CheckCollisionSpheres(Vector3Zero(), 1.0f, collectibles[i].position,
+                                  0.5f)) {
+          collectibles[i].Update({40.0f + (i * 20.0f),
+                                  (float)(std::rand() % 256) / 256 * 10 - 5,
+                                  (float)(std::rand() % 256) / 256 * 10 - 5});
+          PlaySound(gearSound);
+          progression += 5.0f;
+        }
+
         if (collectibles[i].position.x < camera.position.x) {
           collectibles[i].Update({40.0f + (i * 20.0f),
                                   (float)(std::rand() % 256) / 256 * 10 - 5,
@@ -533,7 +550,11 @@ int main(int argc, char *argv[]) {
     EndDrawing();
   });
 
-  c.on_close([](auto) { std::cout << "ws closed\n"; });
+  c.on_close([&](auto) {
+    std::cout << "ws closed\n";
+    UnloadSound(gearSound);
+    CloseAudioDevice();
+  });
 
   c.run();
 }
