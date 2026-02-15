@@ -39,7 +39,9 @@ int main(int argc, char *argv[]) {
 
   std::vector<Vector3> ring_positions;
   for (size_t i = 0; i < 100; i++) {
-    ring_positions.push_back({40.0f + (i * 20.0f), 0, 0});
+    ring_positions.push_back({40.0f + (i * 20.0f),
+                              (float)(std::rand() % 256) / 256 * 10 - 5,
+                              (float)(std::rand() % 256) / 256 * 10 - 5});
   }
 
   c.on_tick([&](std::optional<wspp::message_view> msg) {
