@@ -26,7 +26,7 @@ document.getElementById("start-button").addEventListener("click", () => {
     }
   });
 
-  let gyroscope = new Gyroscope({ frequency: 60 });
+  let gyroscope = new Gyroscope({ frequency: 10 });
 
   gyroscope.addEventListener("reading", (e) => {
     socket.send(
