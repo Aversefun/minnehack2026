@@ -367,7 +367,7 @@ int main(int argc, char *argv[]) {
                                    manuevering_speed);
 
         if (magnitisim) {
-          float strength = (16000 - collectibles[i].position.x) / 1000000000.0;
+          float strength = (16000 - collectibles[i].position.x) / 10000000.0;
 
           collectibles[i].Update(Vector3Add(
               Vector3Scale(collectibles[i].position, 1 - strength),
