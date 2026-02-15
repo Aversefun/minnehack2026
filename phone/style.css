@@ -12,6 +12,8 @@ body {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
+    color: transparent;
+
 }
 
 
@@ -22,5 +24,5 @@ body {
 #button-x:active { background-image: url("assets/GO-ON.png"); }
 
 #button-y { background-image: url("assets/SLOW-OFF.png");}
-#button-y:active { background-image: url("assets/GO-ON.png"); }
+#button-y:active { background-image: url("assets/SLOW-ON.png"); }
 
