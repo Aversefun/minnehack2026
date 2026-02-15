@@ -1,8 +1,8 @@
-const socket = new WebSocket("ws://localhost:3000/api/phone_ws/test_lobby");
 
 document.getElementById("start-button").addEventListener("click", () => {
-  document.getElementById("start-button").remove();
-    document.getElementById("game-display").style.display = "grid";
+  const socket = new WebSocket(`ws://localhost:3000/api/phone_ws/${encodeURIComponent(document.getElementById("lobby").value)}`);
+  document.getElementById("lobby-handler").remove();
+  document.getElementById("game-display").style.display = "grid";
 
   let gyroscope = new Gyroscope({ frequency: 60 });
 
@@ -13,7 +13,10 @@ document.getElementById("start-button").addEventListener("click", () => {
   gyroscope.start();
 
 
-  // for(let button in ["a", "b", "x", "y"]){
-  //   document.getElementById(`button-`).addEventListener("click", () => {});
-  // }
+  let buttons =  ["a", "b", "x", "y"];
+  for(let button in buttons){
+    document.getElementById(`button-${buttons[button]}`).addEventListener("click", () => {
+      socket.send(JSON.stringify({type: "button_press", button: button}));
+    });
+  }
 });
