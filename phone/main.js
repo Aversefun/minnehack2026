@@ -3,7 +3,7 @@ const socket = new WebSocket("ws://localhost:8080/api/phone_ws/test_lobby");
 document.getElementById("start-button").addEventListener("click", () => {
   document.getElementById("start-button").remove();
 
-  let gyroscope = new Gyroscope({ frequency: 60 });
+  const gyroscope = new Gyroscope({ frequency: 60 });
 
   gyroscope.addEventListener("reading", (e) => {
     const encoder = new TextEncoder();
