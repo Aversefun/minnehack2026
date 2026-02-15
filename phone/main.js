@@ -5,7 +5,7 @@ document.getElementById("start-button").addEventListener("click", () => {
 
   const gyroscope = new Gyroscope({ frequency: 60 });
 
-  gyroscope.addEventListener("reading", (e) => {
+  gyroscope.addEventListener("reading", (_e) => {
     const encoder = new TextEncoder();
     document.getElementById("debug-info").innerText = `${gyroscope.x}, ${gyroscope.y}, ${gyroscope.z}`;
     socket.send(encoder.encode(JSON.stringify(JSON.stringify({x: gyroscope.x, y: gyroscope.y, z: gyroscope.z}))));
