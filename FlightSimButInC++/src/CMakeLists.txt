@@ -1,5 +1,6 @@
 add_executable(fly
  main.cpp
+ raygui.cpp
 )
 
 include(FetchContent)

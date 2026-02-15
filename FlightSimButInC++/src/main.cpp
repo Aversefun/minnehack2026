@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <variant>
 #define WSPP_USE_OPENSSL
+#include "raygui.h"
 #include "wspp.h"
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -37,6 +38,14 @@ int main(int argc, char *argv[]) {
   float z = 0.0;
   float target_z = 0.0;
 
+  float health = 100;
+  float progression = 0;
+
+  float time_to_next_hurt = 10;
+  float hurt_count_down = time_to_next_hurt;
+  float hurt_object = 1;
+  bool game_running = false;
+
   std::vector<Vector3> ring_positions;
   for (size_t i = 0; i < 100; i++) {
     ring_positions.push_back({40.0f + (i * 20.0f),
@@ -45,6 +54,9 @@ int main(int argc, char *argv[]) {
   }
 
   c.on_tick([&](std::optional<wspp::message_view> msg) {
+    if (WindowShouldClose()) {
+      c.close();
+    }
     if (msg.has_value()) {
       nlohmann::json data = nlohmann::json::parse(msg->text());
 
@@ -62,7 +74,7 @@ int main(int argc, char *argv[]) {
 
     BeginDrawing();
 
-    ClearBackground(RAYWHITE);
+    ClearBackground(Color{201, 209, 211, 255});
 
     BeginMode3D(camera);
 
@@ -75,14 +87,32 @@ int main(int argc, char *argv[]) {
 
     DrawModelEx(plane_model, {0, 0, 0}, normalized, scale, {1, 1, 1}, WHITE);
 
-    for (size_t i = 0; i < 100; i++) {
-      DrawCube(ring_positions[i], 1, 1, 1, RED);
-      ring_positions[i] -= Vector3{1.0, up, horizontal} * 0.1;
+    if (game_running) {
+      for (size_t i = 0; i < 100; i++) {
+        DrawCube(ring_positions[i], 1, 1, 1, RED);
+        ring_positions[i] -= Vector3{1.0, up, horizontal} * 0.1;
+
+        if (Vector3Distance(Vector3Zero(), ring_positions[i]) < 1.0) {
+          progression++;
+        }
+      }
     }
 
     EndMode3D();
 
     DrawFPS(10, 10);
+
+    if (game_running) {
+      GuiSetStyle(DEFAULT, TEXT_SIZE, 30);
+      GuiProgressBar({1024 / 5, 1024 / 16, 1024 / 8 * 6, 30}, "Progression",
+                     NULL, &progression, 0, 100);
+
+      GuiProgressBar({1024 / 4, 1024 / 8 * 5, 1024 / 2, 20}, "Health", NULL,
+                     &health, 0, 100);
+    } else {
+      DrawTextPro(GetFontDefault(), "MinneFlight", {1024 / 2, 1024 / 3},
+                  {300, 0}, std::sin(GetTime()), 100, 2, BLACK);
+    }
 
     EndDrawing();
   });
