@@ -1,12 +1,65 @@
 #include <cmath>
 #include <cstdio>
 #include <variant>
+#include <vector>
 #define WSPP_USE_OPENSSL
 #include "wspp.h"
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <raylib.h>
 #include <raymath.h>
+
+void handleInputs(float &x, float &z, float sensitivity = 0.5f) {
+  // Quaternion q = QuaternionFromEuler(target_z * 45.0f * DEG2RAD, 0,
+  //                                    target_x * 45.0f * DEG2RAD);
+  // Emulate y-axis gyro (horizontal movement/roll)
+  if (IsKeyDown(KEY_RIGHT))
+    x += sensitivity;
+  if (IsKeyDown(KEY_LEFT))
+    x -= sensitivity;
+
+  // Emulate x-axis gyro (vertical movement/pitch)
+  if (IsKeyDown(KEY_UP))
+    z -= sensitivity;
+  if (IsKeyDown(KEY_DOWN))
+    z += sensitivity;
+}
+
+class Collectible {
+public:
+  Vector3 position;
+  float rotation;
+  bool active;
+
+  Collectible(Vector3 pos) : position(pos), rotation(0.0f), active(true) {}
+
+  /**
+   * @brief Updates position and internal rotation.
+   * @param velocity The global world-flow vector (movement of rings).
+   */
+  void Update(Vector3 velocity) {
+    if (!active)
+      return;
+
+    // Accumulate local spin for visual interest
+    rotation += 2.0f;
+    if (rotation >= 360.0f)
+      rotation -= 360.0f;
+
+    // Move relative to the plane's apparent motion
+    position = Vector3Subtract(position, velocity);
+  }
+
+  /**
+   * @brief Renders the model with local rotation applied.
+   */
+  void Draw(Model &model) {
+    if (!active)
+      return;
+    // Draw centered at position, rotating around the Y-axis
+    DrawModelEx(model, position, {0, 1, 0}, rotation, {1, 1, 1}, WHITE);
+  }
+};
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -24,6 +77,13 @@ int main(int argc, char *argv[]) {
   camera.fovy = 45.0f;
   camera.projection = CAMERA_PERSPECTIVE;
 
+  Model gasCan, truck, propeller, collectibleGear, collectibleBoard;
+  gasCan = LoadModel("../assets/GasCan.glb");
+  truck = LoadModel("../assets/truck.glb");
+  propeller = LoadModel("../assets/Propeller.glb");
+  collectibleGear = LoadModel("../assets/CollectibleGear.glb");
+  collectibleBoard = LoadModel("../assets/CollectibleBoard.glb");
+
   Model plane_model = LoadModel("../resources/PUSHILIN_Plane.obj");
   Texture2D texture = LoadTexture("../resources/PUSHILIN_PLANE.png");
   plane_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
@@ -40,6 +100,12 @@ int main(int argc, char *argv[]) {
   std::vector<Vector3> ring_positions;
   for (size_t i = 0; i < 100; i++) {
     ring_positions.push_back({40.0f + (i * 20.0f), 0, 0});
+  }
+
+  std::vector<Collectible> collectibles;
+  for (size_t i = 0; i < 100; i++) {
+    collectibles.emplace_back(Vector3{40.0f + (i * 20.0f), 0, 0});
+    // collectibles.push_back(new Collectible({40.0f + (i * 20.0f), 0, 0}));
   }
 
   c.on_tick([&](std::optional<wspp::message_view> msg) {
@@ -73,16 +139,27 @@ int main(int argc, char *argv[]) {
 
     DrawModelEx(plane_model, {0, 0, 0}, normalized, scale, {1, 1, 1}, WHITE);
 
+    // for (size_t i = 0; i < 100; i++) {
+    //   DrawModel(collectibleGear, ring_positions[i], 1.0f, WHITE);
+    //   ring_positions[i] -= Vector3{1.0, up, horizontal} * 0.1;
+    // }
+
     for (size_t i = 0; i < 100; i++) {
-      DrawCube(ring_positions[i], 1, 1, 1, RED);
-      ring_positions[i] -= Vector3{1.0, up, horizontal} * 0.1;
+      DrawModel(collectibleGear, ring_positions[i], 1.0f, WHITE);
+      collectibles[i].Update(Vector3Scale(Vector3{1.0f, up, horizontal}, 0.1f));
+      collectibles[i].Draw(collectibleGear);
     }
 
     EndMode3D();
 
     DrawFPS(10, 10);
 
+    handleInputs(x, z);
+
     EndDrawing();
+    if (WindowShouldClose()) {
+      c.close();
+    }
   });
 
   c.on_close([](auto) { std::cout << "ws closed\n"; });
