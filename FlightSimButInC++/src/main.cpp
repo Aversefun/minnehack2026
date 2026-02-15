@@ -433,17 +433,13 @@ int main(int argc, char *argv[]) {
                                   (float)(std::rand() % 256) / 256 * 10 - 5,
                                   (float)(std::rand() % 256) / 256 * 10 - 5});
           PlaySound(gearSound);
-          progression += 5.0f;
+          progression += upgrade_inc * 10;
         }
 
         if (collectibles[i].position.x < camera.position.x) {
           collectibles[i].Update({40.0f + (i * 20.0f),
                                   (float)(std::rand() % 256) / 256 * 10 - 5,
                                   (float)(std::rand() % 256) / 256 * 10 - 5});
-        }
-
-        if (Vector3Distance(Vector3Zero(), collectibles[i].position) < 1.0) {
-          progression += upgrade_inc;
         }
       }
 

@@ -1,4 +1,7 @@
+document.querySelectorAll(".cutscene-container > img").forEach((a) => a.addEventListener("click", () => a.remove()));
 document.getElementById("start-button").addEventListener("click", () => {
+
+
   const socket = new WebSocket(
     `wss://foxmoss.com:9004/api/phone_ws/${encodeURIComponent(document.getElementById("lobby").value)}`,
   );
