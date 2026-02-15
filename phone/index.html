@@ -8,7 +8,19 @@
   </head>
   <body>
     <button id="start-button">Press Anywhere To Start</button>
-    <div id="debug-info"></div>
+    <div class="container" id="game-display" style="display: none;">
+      <div class="left-container">
+        <button id="button-a">A</button>
+        <button id="button-b">B</button>
+      </div>
+      <div class="center-container">
+        <div id="debug-info"></div>
+      </div>
+      <div class="right-container">
+        <button id="button-x">X</button>
+        <button id="button-y">Y</button>
+      </div>
+    </div>
   
   </body>
   <style>
@@ -21,7 +33,29 @@ html, body {
   all: unset;
 
   width: 100vw;
-  height: 100vw;
+  height: 100vh;
 }
+
+.container {
+  grid-template-columns: 20vw auto 20vw;
+  width: 100vw;
+  height: 100vh;
+}
+
+.container button {
+  aspect-ratio: 1;
+}
+
+.left-container, .right-container {
+  background: black;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  padding: 2em;
+}
+.center-container {
+  background: white;
+}
+
   </style>
 </html>
