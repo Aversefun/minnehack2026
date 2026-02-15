@@ -10,7 +10,8 @@
 #include <raymath.h>
 #include <rlgl.h>
 
-void handleInputs(float &x, float &y, float &z, float sensitivity = 0.5f) {
+void handleInputs(float &x, float &y, float &z,
+                  float sensitivity = 0.5f) { // bbbbbroken!
   // Quaternion q = QuaternionFromEuler(target_z * 45.0f * DEG2RAD, 0,
   //                                    target_x * 45.0f * DEG2RAD);
   // Emulate y-axis gyro (horizontal movement/roll)
@@ -123,6 +124,7 @@ int main(int argc, char *argv[]) {
     Vector3 cityPosition = planePosition;
     cityPosition.y -= altitude;
   }
+
   Entity minneapolis(cityPosition);
   minneapolis.setModel(minneapolisModel);
   minneapolis.color = BLUE;
@@ -131,7 +133,7 @@ int main(int argc, char *argv[]) {
   Mesh sphere = GenMeshSphere(500.0f, 32, 32);
   Model sky = LoadModelFromMesh(sphere);
   Texture2D skyboxTex = LoadTexture("../assets/skybox.jpg");
-  Texture2D skyboxPanorama = LoadTexture("resources/skybox.hdr");
+  // Texture2D skyboxPanorama = LoadTexture("resources/skybox.hdr");
   sky.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = skyboxTex;
   sky.materials[0].shader = LoadShader(0, 0);
 
@@ -205,7 +207,7 @@ int main(int argc, char *argv[]) {
     }
 
     minneapolis.Update(planeVelocity);
-    minneapolis.draw();
+    minneapolis.draw(); // doesn't draw anything idk.
 
     EndMode3D();
 
