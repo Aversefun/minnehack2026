@@ -256,9 +256,9 @@ int main(int argc, char *argv[]) {
       printf("%s\n", data.dump().c_str());
 
       if (data["type"] == "gyro_update") {
-        x += -(float)data["x"] / 10;
-        y += (float)data["z"] / 10;
-        z += (float)data["y"] / 10;
+        x += (float)data["x"] / 2;
+        y += (float)data["z"] / 2;
+        z += (float)data["y"] / 2;
       }
       if (data["type"] == "button_down" &&
           (menu_state == MAIN_MENU || menu_state == GAME_OVER)) {
