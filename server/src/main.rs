@@ -116,6 +116,6 @@ async fn main() {
         .route("/", get(async move || INDEX_HTML))
         .route("/main.js", get(async move || MAIN_JS));
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:1337").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:9003").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
