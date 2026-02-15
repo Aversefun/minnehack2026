@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
       {"More Health", Upgrade::MORE_HEALTH},
       {"Protection", Upgrade::PROTECTION},
       {"Increase Barrage Cooldown", Upgrade::INCREASE_SHOOTER_COOLDOWN},
-      {"Magnitisim", Upgrade::INCREASE_SHOOTER_COOLDOWN, true},
+      {"Magnitisim", Upgrade::MAGNITISM, true},
   };
 
   std::vector<Upgrade> choosable_upgrades = {};
@@ -216,14 +216,14 @@ int main(int argc, char *argv[]) {
       nlohmann::json data = nlohmann::json::parse(msg->text());
 
       if (data["type"] == "gyro_update") {
-        x += (float)data["y"];
-        y += (float)data["z"];
-        z += (float)data["x"];
+        x += -(float)data["x"] / 10;
+        y += (float)data["z"] / 10;
+        z += (float)data["y"] / 10;
       }
       if (data["type"] == "button_down" &&
           (menu_state == MAIN_MENU || menu_state == GAME_OVER)) {
         // init game statej
-        menu_state = UPGRADE_SCREEN;
+        menu_state = GAME_RUNNING;
         health = 100;
 
         collectibles.clear();
@@ -236,7 +236,7 @@ int main(int argc, char *argv[]) {
         hurt_spheres.clear();
 
         health = 100;
-        progression = 0;
+        progression = 100;
 
         cool_down_time = 10;
         show_time = 5;
@@ -245,6 +245,7 @@ int main(int argc, char *argv[]) {
         hurt_object = 1;
         manuevering_speed = 0.1;
         health_dec = 1;
+        magnitisim = false;
 
         for (size_t i = 0; i < upgrades.size(); i++) {
           upgrades[i].used = false;
@@ -253,10 +254,12 @@ int main(int argc, char *argv[]) {
 
         fire_state = FIRING_COOL_DOWN;
       } else if (data["type"] == "button_down" &&
-                 (menu_state == UPGRADE_SCREEN)) {
+                 menu_state == UPGRADE_SCREEN) {
         std::string button_int = data["button"];
         int button_index = std::stoi(button_int);
         auto selected_upgrade = choosable_upgrades[button_index];
+
+        printf("Upgrade selected %s\n", selected_upgrade.name.c_str());
 
         switch (selected_upgrade.type) {
         case Upgrade::LESS_BARRAGES:
@@ -280,6 +283,9 @@ int main(int argc, char *argv[]) {
           magnitisim = true;
           break;
         }
+
+        menu_state = GAME_RUNNING;
+        progression = 0;
       }
     }
 
@@ -361,10 +367,11 @@ int main(int argc, char *argv[]) {
                                    manuevering_speed);
 
         if (magnitisim) {
-          collectibles[i].Update(
-              Vector3Add(collectibles[i].position * 0.99,
-                         {collectibles[i].position.x, 0, 0}) *
-              0.1);
+          float strength = (16000 - collectibles[i].position.x) / 1000000000.0;
+
+          collectibles[i].Update(Vector3Add(
+              Vector3Scale(collectibles[i].position, 1 - strength),
+              Vector3Scale({collectibles[i].position.x, 0, 0}, strength)));
         }
         collectibles[i].draw(collectibleGear);
 
