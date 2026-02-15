@@ -12,15 +12,17 @@ body {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
+    color: transparent;
+
 }
 
 
-#button-a { background-image: url("assets/PAUSE-OFF.png");} /* pause */
-#button-b { background-image: url("assets/SHOP.png");} /* shop*/
+#button-a { background-image: url("assets/PAUSE-OFF.png");}
+#button-b { background-image: url("assets/SHOP.png");}
 
-#button-x { background-image: url("assets/GO-OFF.png");} /* acclerate*/
+#button-x { background-image: url("assets/GO-OFF.png");}
 #button-x:active { background-image: url("assets/GO-ON.png"); }
 
-#button-y { background-image: url("assets/SLOW-OFF.png");} /* declerate*/
-#button-y:active { background-image: url("assets/GO-ON.png"); }
+#button-y { background-image: url("assets/SLOW-OFF.png");}
+#button-y:active { background-image: url("assets/SLOW-ON.png"); }
 
