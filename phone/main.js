@@ -15,8 +15,11 @@ document.getElementById("start-button").addEventListener("click", () => {
 
   let buttons =  ["a", "b", "x", "y"];
   for(let button in buttons){
-    document.getElementById(`button-${buttons[button]}`).addEventListener("click", () => {
-      socket.send(JSON.stringify({type: "button_press", button: button}));
+    document.getElementById(`button-${buttons[button]}`).addEventListener("mousedown", (e) => {
+      socket.send(JSON.stringify({type: "button_down", button: button}));
+    });
+    document.getElementById(`button-${buttons[button]}`).addEventListener("mouseup", (e) => {
+      socket.send(JSON.stringify({type: "button_up", button: button}));
     });
   }
 });
