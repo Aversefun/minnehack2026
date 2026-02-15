@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <string>
 #include <variant>
 #define WSPP_USE_OPENSSL
 #include "raygui.h"
@@ -36,7 +37,7 @@ int main(int argc, char *argv[]) {
   plane_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 
   wspp::ws_client c;
-  c.connect("ws://127.0.0.1:3000/api/laptop_ws/" + std::string(argv[1]));
+  c.connect("ws://foxmoss.com:9003/api/laptop_ws/" + std::string(argv[1]));
 
   float x = 0.0;
   float target_x = 0.0;
@@ -51,9 +52,10 @@ int main(int argc, char *argv[]) {
   float show_time = 0;
   float fire_time = 0;
   float hurt_count_down = 0;
-  float hurt_object = 0;
+  int hurt_object = 0;
   float manuevering_speed = 0;
   float health_dec = 0;
+  bool magnitisim = false;
 
   enum GunFireState {
     FIRING_COOL_DOWN,
@@ -66,6 +68,7 @@ int main(int argc, char *argv[]) {
     GAME_RUNNING,
     UPGRADE_SCREEN,
     GAME_OVER,
+    PAUSE_SCREEN,
   } menu_state = MAIN_MENU;
 
   std::vector<Vector3> ring_positions;
@@ -142,6 +145,34 @@ int main(int argc, char *argv[]) {
         std::shuffle(upgrades.begin(), upgrades.end(), rng);
 
         fire_state = FIRING_COOL_DOWN;
+      } else if (data["type"] == "button_down" &&
+                 (menu_state == UPGRADE_SCREEN)) {
+        std::string button_int = data["button"];
+        int button_index = std::stoi(button_int);
+        auto selected_upgrade = choosable_upgrades[button_index];
+
+        switch (selected_upgrade.type) {
+        case Upgrade::LESS_BARRAGES:
+          hurt_object -= 1;
+          hurt_object = std::max(hurt_object, 1);
+          break;
+        case Upgrade::INCREASE_SHOOTER_COOLDOWN:
+          cool_down_time++;
+          break;
+        case Upgrade::PROTECTION:
+          health_dec /= 2;
+          break;
+        case Upgrade::MORE_HEALTH:
+          health += 20;
+          health = std::clamp(health, 0.0f, 100.0f);
+          break;
+        case Upgrade::FASTER_MANUEVERING:
+          manuevering_speed += 0.1;
+          break;
+        case Upgrade::MAGNITISM:
+          magnitisim = true;
+          break;
+        }
       }
     }
 
@@ -214,6 +245,11 @@ int main(int argc, char *argv[]) {
       for (size_t i = 0; i < ring_positions.size(); i++) {
         DrawCube(ring_positions[i], 1, 1, 1, RED);
         ring_positions[i] -= Vector3{1.0, up, horizontal} * manuevering_speed;
+        if (magnitisim) {
+          ring_positions[i] = Vector3Add(ring_positions[i] * 0.99,
+                                         {ring_positions[i].x, 0, 0}) *
+                              0.1;
+        }
 
         if (Vector3Distance(Vector3Zero(), ring_positions[i]) < 1.0) {
           progression += 5;
@@ -225,7 +261,7 @@ int main(int argc, char *argv[]) {
 
     DrawFPS(10, 10);
 
-    if (menu_state == GAME_RUNNING || menu_state == UPGRADE_SCREEN) {
+    if (menu_state == GAME_RUNNING) {
       GuiSetStyle(DEFAULT, TEXT_SIZE, 30);
       GuiProgressBar({1024 / 5, 1024 / 16, 1024 / 8 * 6, 30}, "Progression",
                      NULL, &progression, 0, 100);
@@ -253,7 +289,8 @@ int main(int argc, char *argv[]) {
         menu_state = GAME_OVER;
       }
 
-      if (progression > 100) {
+      printf("%f\n", progression);
+      if (progression >= 100) {
         menu_state = UPGRADE_SCREEN;
         std::shuffle(upgrades.begin(), upgrades.end(), rng);
         choosable_upgrades.clear();
@@ -281,16 +318,23 @@ int main(int argc, char *argv[]) {
       DrawText("Press any button to restart", 1024 / 5, 1024 / 5 + 100, 40,
                BLACK);
     } else if (menu_state == UPGRADE_SCREEN) {
-      DrawTextPro(GetFontDefault(), "Upgrades!", {1024 / 2, 1024 / 9},
+      GuiSetStyle(DEFAULT, TEXT_SIZE, 30);
+      GuiProgressBar({1024 / 5, 1024 / 16, 1024 / 8 * 6, 30}, "Progression",
+                     NULL, &progression, 0, 100);
+
+      GuiProgressBar({1024 / 4, 1024 / 8 * 5, 1024 / 2, 20}, "Health", NULL,
+                     &health, 0, 100);
+
+      DrawTextPro(GetFontDefault(), "Upgrades!", {1024 / 2, 1024 / 7},
                   {300, 50}, std::sin(GetTime() * 2) * 5, 100, 2, BLACK);
       DrawText(TextFormat("A: %s", choosable_upgrades[0].name.c_str()),
                1024 / 8, 1024 / 8, 40, BLACK);
       DrawText(TextFormat("B: %s", choosable_upgrades[1].name.c_str()),
-               1024 / 8, 1024 / 2, 40, BLACK);
-      DrawText(TextFormat("X: %s", choosable_upgrades[0].name.c_str()),
-               1024 / 8 * 6, 1024 / 8, 40, BLACK);
-      DrawText(TextFormat("Y: %s", choosable_upgrades[1].name.c_str()),
-               1024 / 8 * 6, 1024 / 2, 40, BLACK);
+               1024 / 8, 1024 / 3, 40, BLACK);
+      DrawText(TextFormat("X: %s", choosable_upgrades[2].name.c_str()),
+               1024 / 8 * 5, 1024 / 3, 40, BLACK);
+      DrawText(TextFormat("Y: %s", choosable_upgrades[3].name.c_str()),
+               1024 / 8 * 5, 1024 / 2, 40, BLACK);
     }
 
     EndDrawing();
