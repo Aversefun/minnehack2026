@@ -1,0 +1,26 @@
+/* no-scroll controller*/
+body {
+    overflow: hidden;
+}
+
+.img-btn{
+    all: unset;
+    display: block;
+    width: 100%;
+    max-width: 140px;
+    aspect-ratio: 1;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+
+#button-a { background-image: url("assets/PAUSE-OFF.png");} /* pause */
+#button-b { background-image: url("assets/SHOP.png");} /* shop*/
+
+#button-x { background-image: url("assets/GO-OFF.png");} /* acclerate*/
+#button-x:active { background-image: url("assets/GO-ON.png"); }
+
+#button-y { background-image: url("assets/SLOW-OFF.png");} /* declerate*/
+#button-y:active { background-image: url("assets/GO-ON.png"); }
+
