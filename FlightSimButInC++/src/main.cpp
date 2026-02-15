@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
   SetTargetFPS(60);
 
   Camera3D camera = {};
-  camera.position = (Vector3){-10.0f, 5.0f, 0.0f};
+  camera.position = (Vector3){-10.0f, 1.0f, 0.0f};
   camera.target = (Vector3){0.0f, 0.0f, 0.0f};
   camera.up = (Vector3){0.0f, 1.0f, 0.0f};
   camera.fovy = 45.0f;
@@ -38,8 +38,8 @@ int main(int argc, char *argv[]) {
   float target_z = 0.0;
 
   std::vector<Vector3> ring_positions;
-  for (size_t i = 0; i < 10; i++) {
-    ring_positions.push_back({0, 0, static_cast<float>(5.0 + (i * 1.0))});
+  for (size_t i = 0; i < 100; i++) {
+    ring_positions.push_back({40.0f + (i * 20.0f), 0, 0});
   }
 
   c.on_tick([&](std::optional<wspp::message_view> msg) {
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 
     BeginMode3D(camera);
 
-    DrawGrid(10, 1.0f);
+    // DrawGrid(10, 1.0f);
 
     Vector3 euler_rot{target_x * 90, 0, target_z * 90};
     Vector3 normalized = Vector3Normalize(euler_rot);
@@ -74,7 +74,11 @@ int main(int argc, char *argv[]) {
     float horizontal = std::sin((target_x * 90) * DEG2RAD) * 1;
 
     DrawModelEx(plane_model, {0, 0, 0}, normalized, scale, {1, 1, 1}, WHITE);
-    DrawCube({1, up, horizontal}, 0.1, 0.1, 0.1, RED);
+
+    for (size_t i = 0; i < 100; i++) {
+      DrawCube(ring_positions[i], 1, 1, 1, RED);
+      ring_positions[i] -= Vector3{1.0, up, horizontal} * 0.1;
+    }
 
     EndMode3D();
 
