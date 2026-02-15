@@ -5,6 +5,7 @@
 #include <ctime>
 #include <string>
 #include <variant>
+#include <vector>
 #define WSPP_USE_OPENSSL
 #include "raygui.h"
 #include "wspp.h"
@@ -12,6 +13,66 @@
 #include <nlohmann/json.hpp>
 #include <raylib.h>
 #include <raymath.h>
+#include <rlgl.h>
+
+// void handleInputs(float &x, float &y, float &z,
+//                   float sensitivity = 0.5f) { // bbbbbroken!
+//   // Quaternion q = QuaternionFromEuler(target_z * 45.0f * DEG2RAD, 0,
+//   //                                    target_x * 45.0f * DEG2RAD);
+//   // Emulate y-axis gyro (horizontal movement/roll)
+//   if (IsKeyDown(KEY_RIGHT))
+//     x += sensitivity;
+//   if (IsKeyDown(KEY_LEFT))
+//     x -= sensitivity;
+//
+//   // Emulate x-axis gyro (vertical movement/pitch)
+//   if (IsKeyDown(KEY_UP))
+//     z -= sensitivity;
+//   if (IsKeyDown(KEY_DOWN))
+//     z += sensitivity;
+// }
+
+class Entity {
+public:
+  Vector3 position;
+  float rotation;
+  bool active;
+
+  Color color = WHITE;
+
+  Entity(Vector3 pos) : position(pos), rotation(0.0f), active(true) {}
+
+  void Update(Vector3 pos) {
+    if (!active)
+      return;
+
+    rotation += 2.0f;
+    if (rotation >= 360.0f)
+      rotation -= 360.0f;
+
+    // Move relative to the plane's apparent motion
+    position = pos;
+  }
+
+  void draw(Model &model) {
+    if (!active)
+      return;
+    // Draw centered at position, rotating around the Y-axis
+    DrawModelEx(model, position, {0, 1, 0}, rotation, {2, 2, 2}, color);
+  }
+
+  void draw() {
+    if (model == nullptr || !active)
+      return;
+    // Draw centered at position, rotating around the Y-axis
+    DrawModelEx(*model, position, {0, 1, 0}, rotation, {1, 1, 1}, color);
+  }
+
+  void setModel(Model &model) { this->model = &model; }
+
+private:
+  Model *model = nullptr;
+};
 
 int main(int argc, char *argv[]) {
   srand(time(NULL));
@@ -22,9 +83,16 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  // Window Initialization
+  /////////////////////////////////////////////////////////////////////////////
+
   InitWindow(1024, 1024, "MinneFlight");
   SetTargetFPS(60);
 
+  /////////////////////////////////////////////////////////////////////////////
+  // World Initialization
+  /////////////////////////////////////////////////////////////////////////////
   Camera3D camera = {};
   camera.position = (Vector3){-10.0f, 1.0f, 0.0f};
   camera.target = (Vector3){0.0f, 0.0f, 0.0f};
@@ -32,15 +100,26 @@ int main(int argc, char *argv[]) {
   camera.fovy = 45.0f;
   camera.projection = CAMERA_PERSPECTIVE;
 
+  Model gasCan, truck, propeller, collectibleGear, collectibleBoard,
+      minneapolisModel;
+  gasCan = LoadModel("../assets/GasCan.glb");
+  truck = LoadModel("../assets/truck.glb");
+  propeller = LoadModel("../assets/Propeller.glb");
+  collectibleGear = LoadModel("../assets/CollectibleGear.glb");
+  collectibleBoard = LoadModel("../assets/CollectibleBoard.glb");
+  minneapolisModel = LoadModel("../assets/minneapolis.stl");
+
   Model plane_model = LoadModel("../resources/PUSHILIN_Plane.obj");
   Texture2D texture = LoadTexture("../resources/PUSHILIN_PLANE.png");
   plane_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 
-  wspp::ws_client c;
-  c.connect("ws://foxmoss.com:9003/api/laptop_ws/" + std::string(argv[1]));
+  Vector3 planePosition = {0.0f, 0.0f, 0.0f};
 
   float x = 0.0;
   float target_x = 0.0;
+
+  float y = 0.0;
+  float target_y = 0.0;
 
   float z = 0.0;
   float target_z = 0.0;
@@ -71,7 +150,31 @@ int main(int argc, char *argv[]) {
     PAUSE_SCREEN,
   } menu_state = MAIN_MENU;
 
-  std::vector<Vector3> ring_positions;
+  Vector3 cityPosition = planePosition;
+  {
+    float altitude = 50.0f;
+    Vector3 cityPosition = planePosition;
+    cityPosition.y -= altitude;
+  }
+
+  Entity minneapolis(cityPosition);
+  minneapolis.setModel(minneapolisModel);
+  minneapolis.color = BLUE;
+
+  // Skybox code
+  Mesh sphere = GenMeshSphere(500.0f, 32, 32);
+  Model sky = LoadModelFromMesh(sphere);
+  Texture2D skyboxTex = LoadTexture("../assets/skybox.jpg");
+  // Texture2D skyboxPanorama = LoadTexture("resources/skybox.hdr");
+  sky.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = skyboxTex;
+  sky.materials[0].shader = LoadShader(0, 0);
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Thread client Initialization
+  /////////////////////////////////////////////////////////////////////////////
+  wspp::ws_client c;
+  c.connect("ws://foxmoss.com:9003/api/laptop_ws/" + std::string(argv[1]));
+
   std::vector<Vector3> hurt_spheres;
 
   struct Upgrade {
@@ -101,29 +204,33 @@ int main(int argc, char *argv[]) {
 
   size_t frame_ticks = 0;
 
+  std::vector<Entity> collectibles;
+
   c.on_tick([&](std::optional<wspp::message_view> msg) {
     frame_ticks++;
     if (WindowShouldClose()) {
       c.close();
     }
+
     if (msg.has_value()) {
       nlohmann::json data = nlohmann::json::parse(msg->text());
 
       if (data["type"] == "gyro_update") {
         x += (float)data["y"];
+        y += (float)data["z"];
         z += (float)data["x"];
       }
       if (data["type"] == "button_down" &&
           (menu_state == MAIN_MENU || menu_state == GAME_OVER)) {
-        // init game state
+        // init game statej
         menu_state = GAME_RUNNING;
         health = 100;
 
-        ring_positions.clear();
+        collectibles.clear();
         for (size_t i = 0; i < 100; i++) {
-          ring_positions.push_back({40.0f + (i * 20.0f),
-                                    (float)(std::rand() % 256) / 256 * 10 - 5,
-                                    (float)(std::rand() % 256) / 256 * 10 - 5});
+          collectibles.emplace_back(Vector3{
+              40.0f + (i * 20.0f), (float)(std::rand() % 256) / 256 * 10 - 5,
+              (float)(std::rand() % 256) / 256 * 10 - 5});
         }
 
         hurt_spheres.clear();
@@ -188,6 +295,12 @@ int main(int argc, char *argv[]) {
 
     BeginMode3D(camera);
 
+    rlDisableBackfaceCulling();
+    rlDisableDepthMask();
+    DrawModel(sky, camera.position, 1.0f, WHITE);
+    rlEnableDepthMask();
+    rlEnableBackfaceCulling();
+
     Vector3 euler_rot{target_x * 90, 0, target_z * 90};
     Vector3 normalized = Vector3Normalize(euler_rot);
     float scale = Vector3Length(euler_rot);
@@ -242,19 +355,27 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      for (size_t i = 0; i < ring_positions.size(); i++) {
-        DrawCube(ring_positions[i], 1, 1, 1, RED);
-        ring_positions[i] -= Vector3{1.0, up, horizontal} * manuevering_speed;
-        if (magnitisim) {
-          ring_positions[i] = Vector3Add(ring_positions[i] * 0.99,
-                                         {ring_positions[i].x, 0, 0}) *
-                              0.1;
-        }
+      for (size_t i = 0; i < collectibles.size(); i++) {
+        collectibles[i].Update(collectibles[i].position -
+                               Vector3{1.0, up, horizontal} *
+                                   manuevering_speed);
 
-        if (Vector3Distance(Vector3Zero(), ring_positions[i]) < 1.0) {
+        if (magnitisim) {
+          collectibles[i].Update(
+              Vector3Add(collectibles[i].position * 0.99,
+                         {collectibles[i].position.x, 0, 0}) *
+              0.1);
+        }
+        collectibles[i].draw(collectibleGear);
+
+        if (Vector3Distance(Vector3Zero(), collectibles[i].position) < 1.0) {
           progression += 5;
         }
       }
+
+      minneapolis.Update(minneapolis.position -
+                         Vector3{1.0, up, horizontal} * manuevering_speed);
+      minneapolis.draw(); // doesn't draw anything idk.
     }
 
     EndMode3D();
