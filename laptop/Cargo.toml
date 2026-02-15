@@ -30,3 +30,4 @@ opt-level = 3
 
 [dependencies]
 bevy = "0.18.0"
+bevy_obj = "0.18"
