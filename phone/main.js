@@ -1,4 +1,3 @@
-
 document.getElementById("start-button").addEventListener("click", () => {
   const socket = new WebSocket(`ws://localhost:3000/api/phone_ws/${encodeURIComponent(document.getElementById("lobby").value)}`);
   document.getElementById("lobby-handler").remove();

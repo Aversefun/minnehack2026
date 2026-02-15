@@ -49,7 +49,10 @@ async fn main() {
                             let lobby = lobby;
                             while let Some(msg) = receiver.next().await {
                                 if let Ok(msg) = msg {
+<<<<<<< HEAD
                                     print!("{}\n", msg.to_text().unwrap());
+=======
+>>>>>>> origin/main
                                     let mut lobbies = lobbies.write().await;
                                     let sink = lobbies.get_mut(&lobby).unwrap().1.as_mut();
                                     if let Some(sink) = sink {
