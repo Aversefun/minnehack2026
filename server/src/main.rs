@@ -8,10 +8,13 @@ use axum::{
         Path,
         ws::{Message, WebSocket, WebSocketUpgrade},
     },
-    routing::any,
+    routing::{any, get},
 };
 use futures_util::{SinkExt, StreamExt, stream::SplitSink};
 use tokio::sync::RwLock;
+
+const INDEX_HTML: &str = include_str!("../../phone/index.html");
+const MAIN_JS: &str = include_str!("../../phone/main.js");
 
 #[tokio::main]
 async fn main() {
@@ -49,10 +52,7 @@ async fn main() {
                             let lobby = lobby;
                             while let Some(msg) = receiver.next().await {
                                 if let Ok(msg) = msg {
-<<<<<<< HEAD
                                     print!("{}\n", msg.to_text().unwrap());
-=======
->>>>>>> origin/main
                                     let mut lobbies = lobbies.write().await;
                                     let sink = lobbies.get_mut(&lobby).unwrap().1.as_mut();
                                     if let Some(sink) = sink {
@@ -112,7 +112,9 @@ async fn main() {
                     })
                 },
             ),
-        );
+        )
+        .route("/", get(async move || INDEX_HTML))
+        .route("/main.js", get(async move || MAIN_JS));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
