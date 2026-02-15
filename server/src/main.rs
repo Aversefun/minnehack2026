@@ -8,13 +8,11 @@ use axum::{
         Path,
         ws::{Message, WebSocket, WebSocketUpgrade},
     },
-    routing::{any, get},
+    http::{HeaderMap, HeaderValue, StatusCode, Uri, header},
+    routing::any,
 };
 use futures_util::{SinkExt, StreamExt, stream::SplitSink};
-use tokio::sync::RwLock;
-
-const INDEX_HTML: &str = include_str!("../../phone/index.html");
-const MAIN_JS: &str = include_str!("../../phone/main.js");
+use tokio::{fs, sync::RwLock};
 
 #[tokio::main]
 async fn main() {
@@ -113,8 +111,28 @@ async fn main() {
                 },
             ),
         )
-        .route("/", get(async move || INDEX_HTML))
-        .route("/main.js", get(async move || MAIN_JS));
+        .fallback(async move |uri: Uri| {
+            let mut path = uri.path().strip_prefix('/').unwrap();
+            if path.is_empty() {
+                path = "index.html";
+            }
+
+            let (_, ext) = path.split_once('.').unwrap();
+            let contents = fs::read(path).await.unwrap();
+
+            let ty = match ext {
+                "html" => "text/html",
+                "js" => "text/javascript",
+                "css" => "text/css",
+                "png" => "image/png",
+                _ => panic!("tokio you better catch this"),
+            };
+            let mut headers = HeaderMap::new();
+
+            headers.append(header::CONTENT_TYPE, HeaderValue::from_static(ty));
+
+            (StatusCode::OK, headers, contents)
+        });
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:9003").await.unwrap();
     axum::serve(listener, app).await.unwrap();
