@@ -64,8 +64,6 @@ int main(int argc, char *argv[]) {
 
     BeginMode3D(camera);
 
-    // DrawGrid(10, 1.0f);
-
     Vector3 euler_rot{target_x * 90, 0, target_z * 90};
     Vector3 normalized = Vector3Normalize(euler_rot);
     float scale = Vector3Length(euler_rot);
