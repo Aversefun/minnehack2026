@@ -223,11 +223,11 @@ int main(int argc, char *argv[]) {
       if (data["type"] == "button_down" &&
           (menu_state == MAIN_MENU || menu_state == GAME_OVER)) {
         // init game statej
-        menu_state = GAME_RUNNING;
+        menu_state = UPGRADE_SCREEN;
         health = 100;
 
         collectibles.clear();
-        for (size_t i = 0; i < 100; i++) {
+        for (size_t i = 0; i < 20; i++) {
           collectibles.emplace_back(Vector3{
               40.0f + (i * 20.0f), (float)(std::rand() % 256) / 256 * 10 - 5,
               (float)(std::rand() % 256) / 256 * 10 - 5});
@@ -368,6 +368,12 @@ int main(int argc, char *argv[]) {
         }
         collectibles[i].draw(collectibleGear);
 
+        if (collectibles[i].position.x < camera.position.x) {
+          collectibles[i].Update({40.0f + (i * 20.0f),
+                                  (float)(std::rand() % 256) / 256 * 10 - 5,
+                                  (float)(std::rand() % 256) / 256 * 10 - 5});
+        }
+
         if (Vector3Distance(Vector3Zero(), collectibles[i].position) < 1.0) {
           progression += 5;
         }
@@ -410,7 +416,6 @@ int main(int argc, char *argv[]) {
         menu_state = GAME_OVER;
       }
 
-      printf("%f\n", progression);
       if (progression >= 100) {
         menu_state = UPGRADE_SCREEN;
         std::shuffle(upgrades.begin(), upgrades.end(), rng);
@@ -446,16 +451,18 @@ int main(int argc, char *argv[]) {
       GuiProgressBar({1024 / 4, 1024 / 8 * 5, 1024 / 2, 20}, "Health", NULL,
                      &health, 0, 100);
 
+      DrawRectangle(0, 0, 1024, 1024, Color{255, 255, 255, 100});
+
       DrawTextPro(GetFontDefault(), "Upgrades!", {1024 / 2, 1024 / 7},
                   {300, 50}, std::sin(GetTime() * 2) * 5, 100, 2, BLACK);
       DrawText(TextFormat("A: %s", choosable_upgrades[0].name.c_str()),
-               1024 / 8, 1024 / 8, 40, BLACK);
+               1024 / 16, 1024 / 3, 20, BLACK);
       DrawText(TextFormat("B: %s", choosable_upgrades[1].name.c_str()),
-               1024 / 8, 1024 / 3, 40, BLACK);
+               1024 / 16, 1024 / 2, 20, BLACK);
       DrawText(TextFormat("X: %s", choosable_upgrades[2].name.c_str()),
-               1024 / 8 * 5, 1024 / 3, 40, BLACK);
+               1024 / 16 * 8, 1024 / 3, 20, BLACK);
       DrawText(TextFormat("Y: %s", choosable_upgrades[3].name.c_str()),
-               1024 / 8 * 5, 1024 / 2, 40, BLACK);
+               1024 / 16 * 8, 1024 / 2, 20, BLACK);
     }
 
     EndDrawing();
