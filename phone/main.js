@@ -21,4 +21,33 @@ document.getElementById("start-button").addEventListener("click", () => {
       socket.send(JSON.stringify({type: "button_up", button: button}));
     });
   }
+
+
+  document.getElementById("button-b").addEventListener("click", () =>
+  {
+    renderShop();
+
+  });
+
+  document.getElementById("button-c").addEventListener("click", () => {
+    renderGame();
+  });
+
+
 });
+
+
+function renderShop()
+{
+  document.getElementById("shop-display").style.display = "grid";
+  document.getElementById("game-display").style.display = "none";
+  //render shop items (randomized)
+
+}
+
+function renderGame()
+{
+  document.getElementById("game-display").style.display = "grid";
+  document.getElementById("shop-display").style.display = "none";
+}
+
