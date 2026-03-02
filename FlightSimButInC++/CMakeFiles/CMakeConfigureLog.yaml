@@ -1,0 +1,182 @@
+
+---
+events:
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
+      - "CMakeLists.txt"
+    mode: "program"
+    variable: "CMAKE_UNAME"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "uname"
+    candidate_directories:
+      - "/bedrock/bin/"
+      - "/usr/local/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/bin/"
+      - "/usr/sbin/"
+      - "/bin/"
+      - "/sbin/"
+      - "/usr/local/games/"
+      - "/usr/games/"
+      - "/home/foxmoss/.local/share/nvm/v24.6.0/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/foxmoss/.local/bin/"
+      - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin/"
+      - "/home/foxmoss/.cargo/"
+    searched_directories:
+      - "/bedrock/bin/uname"
+      - "/usr/local/bin/uname"
+      - "/usr/local/sbin/uname"
+      - "/usr/bin/uname"
+      - "/usr/sbin/uname"
+    found: "/bin/uname"
+    search_context:
+      ENV{PATH}:
+        - "/bedrock/bin"
+        - "/usr/local/bin"
+        - "/usr/local/sbin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/bin"
+        - "/sbin"
+        - "/usr/local/games"
+        - "/usr/games"
+        - "/home/foxmoss/.local/share/nvm/v24.6.0/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/foxmoss/.local/bin"
+        - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin"
+        - "/home/foxmoss/.cargo/"
+        - "/home/foxmoss/.local/bin"
+        - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin"
+        - "/home/foxmoss/.cargo/"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:212 (message)"
+      - "CMakeLists.txt"
+    message: |
+      The system is: Linux - 6.12.73+deb13-amd64 - x86_64
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeUnixFindMake.cmake:5 (find_program)"
+      - "CMakeLists.txt"
+    mode: "program"
+    variable: "CMAKE_MAKE_PROGRAM"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "gmake"
+      - "make"
+      - "smake"
+    candidate_directories:
+      - "/bedrock/bin/"
+      - "/usr/local/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/bin/"
+      - "/usr/sbin/"
+      - "/bin/"
+      - "/sbin/"
+      - "/usr/local/games/"
+      - "/usr/games/"
+      - "/home/foxmoss/.local/share/nvm/v24.6.0/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/foxmoss/.local/bin/"
+      - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin/"
+      - "/home/foxmoss/.cargo/"
+    searched_directories:
+      - "/bedrock/bin/gmake"
+      - "/usr/local/bin/gmake"
+      - "/usr/local/sbin/gmake"
+      - "/usr/bin/gmake"
+      - "/usr/sbin/gmake"
+      - "/bin/gmake"
+      - "/sbin/gmake"
+      - "/usr/local/games/gmake"
+      - "/usr/games/gmake"
+      - "/home/foxmoss/.local/share/nvm/v24.6.0/bin/gmake"
+      - "/usr/bin/site_perl/gmake"
+      - "/usr/bin/vendor_perl/gmake"
+      - "/usr/bin/core_perl/gmake"
+      - "/home/foxmoss/.local/bin/gmake"
+      - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin/gmake"
+      - "/home/foxmoss/.cargo/gmake"
+      - "/bedrock/bin/make"
+      - "/usr/local/bin/make"
+      - "/usr/local/sbin/make"
+      - "/usr/bin/make"
+      - "/usr/sbin/make"
+      - "/bin/make"
+      - "/sbin/make"
+      - "/usr/local/games/make"
+      - "/usr/games/make"
+      - "/home/foxmoss/.local/share/nvm/v24.6.0/bin/make"
+      - "/usr/bin/site_perl/make"
+      - "/usr/bin/vendor_perl/make"
+      - "/usr/bin/core_perl/make"
+      - "/home/foxmoss/.local/bin/make"
+      - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin/make"
+      - "/home/foxmoss/.cargo/make"
+      - "/bedrock/bin/smake"
+      - "/usr/local/bin/smake"
+      - "/usr/local/sbin/smake"
+      - "/usr/bin/smake"
+      - "/usr/sbin/smake"
+      - "/bin/smake"
+      - "/sbin/smake"
+      - "/usr/local/games/smake"
+      - "/usr/games/smake"
+      - "/home/foxmoss/.local/share/nvm/v24.6.0/bin/smake"
+      - "/usr/bin/site_perl/smake"
+      - "/usr/bin/vendor_perl/smake"
+      - "/usr/bin/core_perl/smake"
+      - "/home/foxmoss/.local/bin/smake"
+      - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin/smake"
+      - "/home/foxmoss/.cargo/smake"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/bedrock/bin"
+        - "/usr/local/bin"
+        - "/usr/local/sbin"
+        - "/usr/bin"
+        - "/usr/sbin"
+        - "/bin"
+        - "/sbin"
+        - "/usr/local/games"
+        - "/usr/games"
+        - "/home/foxmoss/.local/share/nvm/v24.6.0/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/foxmoss/.local/bin"
+        - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin"
+        - "/home/foxmoss/.cargo/"
+        - "/home/foxmoss/.local/bin"
+        - "/home/foxmoss/.local/share/gem/ruby/3.4.0/bin"
+        - "/home/foxmoss/.cargo/"
+...

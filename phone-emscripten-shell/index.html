@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MinneFlight</title>
+    <script src="main.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+    <style>{{{ SHELL_CSS }}}</style>
+  </head>
+  <body>
+    <div id="lobby-handler">
+      <button id="start-button">
+        Press To Start
+      </button>
+    </div>
+
+    <div class="cutscene-container">
+      <img src="./story/1.png"></img>
+      <img src="./story/2.png"></img>
+      <img src="./story/3.png"></img>
+      <img src="./story/4.png"></img>
+      <img src="./story/5.png"></img>
+    </div>
+
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+
+
+    <!--MAIN MENU-->
+    <div class="container" id="main-display" style="display: none;">
+      <div class="left-container">
+        <div></div>
+        <div></div>
+        
+        <!-- <button id="button-a" class="img-btn">Pause</button> -->
+        <!-- <button id="button-b" class="img-btn">Shop</button> -->
+      </div>
+      <div class="center-container">
+        
+        <!-- <div id="debug-info"></div> -->
+      </div>
+      <div class="right-container">
+        <button id="button-x" class="img-btn">GO</button>
+        <div></div>
+
+        <!-- <button id="button-y" class="img-btn">SLOW</button> -->
+      </div>
+    </div>
+
+    <!--GAME-->
+    <div class="container" id="game-display" style="display: none;">
+      <div class="left-container">
+        <button id="button-a" class="img-btn">Pause</button>
+        <div></div>
+        
+        <!-- <button id="button-b" class="img-btn">Shop</button> -->
+      </div>
+      <div class="center-container">
+        <!-- <div id="debug-info"></div> -->
+      </div>
+      <div class="right-container">
+        <div></div>
+        <div></div>
+
+        <!-- <button id="button-y" class="img-btn">SLOW</button> -->
+      </div>
+    </div>
+
+
+    <!--SHOP -->
+    <div class="container" id="shop-display" style="display: none;">
+      <div class="left-container"> 
+        <button id="button-a" class="img-btn">ITEM</button>
+        <button id="button-b" class="img-btn">ITEM2</button>
+      </div>
+      <div class="center-container"> 
+      </div>
+      <div class="right-container"> 
+        <button id="button-x" class="img-btn">ITEM3</button>
+        <button id="button-y" class="img-btn">ITEM4</button>
+      </div>
+    </div>
+
+    <!--WIN SCREEN-->
+    <div class="container" id="win-display" style="display: none;">
+      <div class="left-container"> 
+      </div>
+      <div class="center-container"> 
+      </div>
+      <div class="right-container"> 
+      </div>
+    </div>
+
+
+  </body>
+  <style>
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+#lobby-handler {
+  display: flex;
+
+  width: 100vw;
+  height: 100vh;
+
+  flex-direction: column;
+  justify-content: center;
+}
+
+#start-button, #lobby {
+  height: 10vh;
+  margin-top: 1vw;
+  margin-left: 10vw;
+  margin-right: 10vw;
+}
+
+.container {
+  grid-template-columns: 20vw auto 20vw;
+  width: 100vw;
+  height: 100vh;
+}
+
+.container button {
+  aspect-ratio: 1;
+}
+
+.left-container, .right-container {
+  background: black;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  padding: 2em;
+}
+
+.center-container {
+  background: white;
+}
+
+  </style>
+
+  <script>
+    
+      var canvasElement = document.getElementById('canvas');
+
+    #if MODULARIZE && !EXPORT_ES6
+      var moduleArgs = {
+#else
+      var Module = {
+#endif
+        print(...args) {
+          console.log(...args);
+        },
+        canvas: canvasElement,
+        totalDependencies: 0,
+        monitorRunDependencies(left) {
+        }
+      };
+  </script>
+  
+    {{{ SCRIPT }}}
+#if MODULARIZE && !EXPORT_ES6
+    <script type='text/javascript'>
+      {{{ EXPORT_NAME }}}(moduleArgs);
+    </script>
+#endif
+</html>

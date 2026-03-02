@@ -3,12 +3,19 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <optional>
+#include <random>
 #include <string>
 #include <variant>
 #include <vector>
+#ifndef FLIGHT_SIM_STATIC
 #define WSPP_USE_OPENSSL
-#include "raygui.h"
 #include "wspp.h"
+#else 
+#include <emscripten/emscripten.h>
+void loop();
+#endif
+#include "raygui.h"
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <raylib.h>
@@ -74,14 +81,99 @@ private:
   Model *model = nullptr;
 };
 
+auto rng = std::default_random_engine{};
+static Music intenseMusic;
+static Sound gearSound;
+static Camera3D camera;
+static Model gasCan, truck, propeller, collectibleGear, collectibleBoard;
+
+#ifndef FLIGHT_SIM_STATIC
+static Model plane_model;
+static Texture2D texture;
+#else
+static Model plane_model;
+static Texture2D texture;
+#endif
+
+static Vector3 planePosition = {0.0f, 0.0f, 0.0f};
+
+static float x = 0.0;
+static float target_x = 0.0;
+
+static float y = 0.0;
+static float target_y = 0.0;
+
+static float z = 0.0;
+static float target_z = 0.0;
+
+static float health = 100;
+static float progression = 0;
+
+static float cool_down_time = 0;
+static float show_time = 0;
+static float fire_time = 0;
+static float hurt_count_down = 0;
+static int hurt_object = 0;
+static float manuevering_speed = 0;
+static float health_dec = 0;
+static float upgrade_inc = 0;
+static bool magnitisim = false;
+
+static enum GunFireState {
+  FIRING_COOL_DOWN,
+  FIRING_SHOWN,
+  FIRING_ACTIVE
+} fire_state = FIRING_COOL_DOWN;
+
+static enum MenuState {
+  MAIN_MENU,
+  GAME_RUNNING,
+  UPGRADE_SCREEN,
+  GAME_OVER,
+  PAUSE_SCREEN,
+  WIN_SCREEN,
+} menu_state = MAIN_MENU;
+
+
+static Mesh sphere ;
+static Model sky ;
+static Texture2D skyboxTex ;
+
+static std::vector<Vector3> hurt_spheres;
+
+struct Upgrade {
+  std::string name;
+  enum UpgradeType {
+    LESS_BARRAGES,
+    FASTER_MANUEVERING,
+    MORE_HEALTH,
+    PROTECTION,
+    INCREASE_SHOOTER_COOLDOWN,
+    MAGNITISM
+  } type;
+  bool one_use = false;
+  bool used = false;
+};
+
+static std::vector<Upgrade> upgrades;
+static std::vector<Upgrade> choosable_upgrades;
+
+static size_t frame_ticks = 0;
+static size_t game_ticks = 0;
+
+static std::vector<Entity> collectibles;
+
+static MenuState last_state = menu_state;
+
 int main(int argc, char *argv[]) {
   srand(time(NULL));
-  auto rng = std::default_random_engine{};
 
+#ifndef FLIGHT_SIM_STATIC
   if (argc != 2) {
     printf("USAGE: %s [lobby code]\n", argv[0]);
     return 1;
   }
+#endif
 
   /////////////////////////////////////////////////////////////////////////////
   // Window Initialization
@@ -91,115 +183,99 @@ int main(int argc, char *argv[]) {
   SetTargetFPS(60);
 
   InitAudioDevice();
-  Sound gearSound = LoadSound("../assets/gear_collect.mp3");
-  Music intenseMusic = LoadMusicStream("../assets/intenseMusic.mp3");
+#ifndef FLIGHT_SIM_STATIC
+  gearSound = LoadSound("../resources/gear_collect.mp3");
+  intenseMusic = LoadMusicStream("../resources/intenseMusic.mp3");
+#else
+  gearSound = LoadSound("/gear_collect.mp3");
+  intenseMusic = LoadMusicStream("/intenseMusic.mp3");
+#endif
   intenseMusic.looping = true; // Enables perfect looping
   PlayMusicStream(intenseMusic);
 
   /////////////////////////////////////////////////////////////////////////////
   // World Initialization
   /////////////////////////////////////////////////////////////////////////////
-  Camera3D camera = {};
+  camera = {};
   camera.position = (Vector3){-10.0f, 1.0f, 0.0f};
   camera.target = (Vector3){0.0f, 0.0f, 0.0f};
   camera.up = (Vector3){0.0f, 1.0f, 0.0f};
   camera.fovy = 45.0f;
   camera.projection = CAMERA_PERSPECTIVE;
 
-  Model gasCan, truck, propeller, collectibleGear, collectibleBoard,
-      minneapolisModel;
-  gasCan = LoadModel("../assets/GasCan.glb");
-  truck = LoadModel("../assets/truck.glb");
-  propeller = LoadModel("../assets/Propeller.glb");
-  collectibleGear = LoadModel("../assets/CollectibleGear.glb");
-  collectibleBoard = LoadModel("../assets/CollectibleBoard.glb");
-  minneapolisModel = LoadModel("../assets/minneapolis.stl");
+#ifndef FLIGHT_SIM_STATIC
+  gasCan = LoadModel("../resources/GasCan.glb");
+  truck = LoadModel("../resources/truck.glb");
+  propeller = LoadModel("../resources/Propeller.glb");
+  collectibleGear = LoadModel("../resources/CollectibleGear.glb");
+  collectibleBoard = LoadModel("../resources/CollectibleBoard.glb");
+#else
+  gasCan = LoadModel("/GasCan.glb");
+  truck = LoadModel("/truck.glb");
+  propeller = LoadModel("/Propeller.glb");
+  collectibleGear = LoadModel("/CollectibleGear.glb");
+  collectibleBoard = LoadModel("/CollectibleBoard.glb");
+#endif
 
-  Model plane_model = LoadModel("../resources/PUSHILIN_Plane.obj");
-  Texture2D texture = LoadTexture("../resources/PUSHILIN_PLANE.png");
+#ifndef FLIGHT_SIM_STATIC
+  plane_model = LoadModel("../resources/PUSHILIN_Plane.obj");
+  texture = LoadTexture("../resources/PUSHILIN_PLANE.png");
+#else
+  plane_model = LoadModel("/PUSHILIN_Plane.obj");
+  texture = LoadTexture("/PUSHILIN_PLANE.png");
+#endif
   plane_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 
-  Vector3 planePosition = {0.0f, 0.0f, 0.0f};
+  planePosition = {0.0f, 0.0f, 0.0f};
 
-  float x = 0.0;
-  float target_x = 0.0;
+  x = 0.0;
+  target_x = 0.0;
 
-  float y = 0.0;
-  float target_y = 0.0;
+  y = 0.0;
+  target_y = 0.0;
 
-  float z = 0.0;
-  float target_z = 0.0;
+  z = 0.0;
+  target_z = 0.0;
 
-  float health = 100;
-  float progression = 0;
+  health = 100;
+  progression = 0;
 
-  float cool_down_time = 0;
-  float show_time = 0;
-  float fire_time = 0;
-  float hurt_count_down = 0;
-  int hurt_object = 0;
-  float manuevering_speed = 0;
-  float health_dec = 0;
-  float upgrade_inc = 0;
-  bool magnitisim = false;
+  cool_down_time = 0;
+  show_time = 0;
+  fire_time = 0;
+  hurt_count_down = 0;
+  hurt_object = 0;
+  manuevering_speed = 0;
+  health_dec = 0;
+  upgrade_inc = 0;
+  magnitisim = false;
 
-  enum GunFireState {
-    FIRING_COOL_DOWN,
-    FIRING_SHOWN,
-    FIRING_ACTIVE
-  } fire_state = FIRING_COOL_DOWN;
+  fire_state = FIRING_COOL_DOWN;
 
-  enum MenuState {
-    MAIN_MENU,
-    GAME_RUNNING,
-    UPGRADE_SCREEN,
-    GAME_OVER,
-    PAUSE_SCREEN,
-    WIN_SCREEN,
-  } menu_state = MAIN_MENU;
+  menu_state = MAIN_MENU;
 
-  Vector3 cityPosition = planePosition;
-  {
-    float altitude = 50.0f;
-    Vector3 cityPosition = planePosition;
-    cityPosition.y -= altitude;
-  }
-
-  Entity minneapolis(cityPosition);
-  minneapolis.setModel(minneapolisModel);
-  minneapolis.color = BLUE;
 
   // Skybox code
-  Mesh sphere = GenMeshSphere(500.0f, 32, 32);
-  Model sky = LoadModelFromMesh(sphere);
-  Texture2D skyboxTex = LoadTexture("../assets/skybox.jpg");
+  // sphere = GenMeshSphere(500.0f, 32, 32);
+  // sky = LoadModelFromMesh(sphere);
+#ifndef FLIGHT_SIM_STATIC
+  // skyboxTex = LoadTexture("../resources/skybox.jpg");
+#else
+  // skyboxTex = LoadTexture("/skybox.jpg");
+#endif
   // Texture2D skyboxPanorama = LoadTexture("resources/skybox.hdr");
-  sky.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = skyboxTex;
-  sky.materials[0].shader = LoadShader(0, 0);
+  // sky.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = skyboxTex;
 
   /////////////////////////////////////////////////////////////////////////////
   // Thread client Initialization
   /////////////////////////////////////////////////////////////////////////////
+#ifndef FLIGHT_SIM_STATIC
   wspp::ws_client c;
   c.connect("ws://foxmoss.com:9003/api/laptop_ws/" + std::string(argv[1]));
+#endif
 
-  std::vector<Vector3> hurt_spheres;
 
-  struct Upgrade {
-    std::string name;
-    enum UpgradeType {
-      LESS_BARRAGES,
-      FASTER_MANUEVERING,
-      MORE_HEALTH,
-      PROTECTION,
-      INCREASE_SHOOTER_COOLDOWN,
-      MAGNITISM
-    } type;
-    bool one_use = false;
-    bool used = false;
-  };
-
-  std::vector<Upgrade> upgrades = {
+  upgrades = {
       {"Less Acid Rain", Upgrade::LESS_BARRAGES},
       {"Faster Manuevering", Upgrade::FASTER_MANUEVERING},
       {"More Health", Upgrade::MORE_HEALTH},
@@ -208,16 +284,25 @@ int main(int argc, char *argv[]) {
       {"Magnitisim", Upgrade::MAGNITISM, true},
   };
 
-  std::vector<Upgrade> choosable_upgrades = {};
+  choosable_upgrades = {};
 
-  size_t frame_ticks = 0;
-  size_t game_ticks = 0;
+  frame_ticks = 0;
+  game_ticks = 0;
 
-  std::vector<Entity> collectibles;
 
-  MenuState last_state = menu_state;
+  last_state = menu_state;
 
+#ifndef FLIGHT_SIM_STATIC
   c.on_tick([&](std::optional<wspp::message_view> msg) {
+#else
+  emscripten_set_main_loop(loop, 0, 1);
+  UnloadSound(gearSound);
+  CloseAudioDevice();
+}
+
+  void loop(){
+    std::optional<std::string> msg = {};
+#endif
     UpdateMusicStream(intenseMusic);
 
     frame_ticks++;
@@ -231,13 +316,17 @@ int main(int argc, char *argv[]) {
           data["upgrades"].push_back(upgrade.type);
         }
       }
+#ifndef FLIGHT_SIM_STATIC
       c.send(data.dump());
+#endif
     }
     last_state = menu_state;
 
+#ifndef FLIGHT_SIM_STATIC
     if (WindowShouldClose()) {
       c.close();
     }
+#endif
 
     if (IsKeyDown(KEY_UP)) {
       z = -1;
@@ -251,8 +340,15 @@ int main(int argc, char *argv[]) {
     if (IsKeyDown(KEY_RIGHT)) {
       x = 1;
     }
+
+#ifndef FLIGHT_SIM_STATIC
     if (msg.has_value()) {
       nlohmann::json data = nlohmann::json::parse(msg->text());
+#else
+    if (msg.has_value()) {
+      nlohmann::json data = nlohmann::json::parse(msg.value());
+#endif
+
       printf("%s\n", data.dump().c_str());
 
       if (data["type"] == "gyro_update") {
@@ -351,7 +447,6 @@ int main(int argc, char *argv[]) {
 
     rlDisableBackfaceCulling();
     rlDisableDepthMask();
-    DrawModel(sky, camera.position, 1.0f, WHITE);
     rlEnableDepthMask();
     rlEnableBackfaceCulling();
 
@@ -443,9 +538,6 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      minneapolis.Update(minneapolis.position -
-                         Vector3{1.0, up, horizontal} * manuevering_speed);
-      minneapolis.draw(); // doesn't draw anything idk.
     }
 
     EndMode3D();
@@ -544,6 +636,7 @@ int main(int argc, char *argv[]) {
     }
 
     EndDrawing();
+#ifndef FLIGHT_SIM_STATIC
   });
 
   c.on_close([&](auto) {
@@ -553,4 +646,8 @@ int main(int argc, char *argv[]) {
   });
 
   c.run();
+#else
+
+#endif
+
 }
